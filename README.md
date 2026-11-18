@@ -2,6 +2,12 @@
 
 园区温室的三维数字孪生大屏：Three.js 实时渲染大棚模型，叠加环境、装备、作物、资源、告警五类运行数据，适配 1080P / 2K / 4K 大屏常驻显示。
 
+- 在线演示（GitHub Pages，打开即看）：<https://xushanzhizhang.github.io/greenhouse/web/index.html>
+- 代码仓库：<https://github.com/xushanzhizhang/greenhouse>
+- 需求文档在线版：<https://xushanzhizhang.github.io/greenhouse/docs/需求分析.html>
+
+> 仓库含原始 FBX 与素材包，完整 clone 约 194 MB；只看代码可加 `--depth 1` 仍会拉全量大文件，只要前端与模型可改用 `git sparse-checkout`。
+
 ![全景](docs/预览图.png)
 
 棚内视角（点顶栏「棚内」）：
