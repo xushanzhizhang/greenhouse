@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>智慧大棚数字孪生大屏 · 需求分析与设计说明</title>
+<style>
+  :root {
+    --ink: #1b2733; --dim: #5b6d7e; --line: #e2e8ef;
+    --accent: #0e8ea8; --accent-soft: #e6f6f9; --bg: #f6f8fa;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
+    font-size: 15px; line-height: 1.8;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 48px 28px 80px; display: grid; grid-template-columns: 220px 1fr; gap: 36px; }
+  .toc { position: sticky; top: 28px; align-self: start; font-size: 13px; }
+  .toc h3 { font-size: 12px; letter-spacing: 2px; color: var(--dim); font-weight: 600; margin: 0 0 10px; }
+  .toc ul { list-style: none; margin: 0; padding: 0; border-left: 2px solid var(--line); }
+  .toc li { padding: 3px 0 3px 12px; }
+  .toc li.lv3 { padding-left: 24px; font-size: 12.2px; color: var(--dim); }
+  .toc a { color: var(--ink); text-decoration: none; }
+  .toc a:hover { color: var(--accent); }
+  .doc { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 46px 54px 60px; box-shadow: 0 10px 40px rgba(20,40,60,.06); min-width: 0; }
+  h1 { font-size: 29px; line-height: 1.4; margin: 0 0 8px; letter-spacing: .5px; }
+  h1 + p, .doc > p:first-of-type { color: var(--dim); }
+  h2 { font-size: 20px; margin: 44px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); letter-spacing: .5px; }
+  h2:first-of-type { margin-top: 34px; }
+  h3 { font-size: 16px; margin: 26px 0 8px; color: #123; }
+  h4 { font-size: 14.5px; margin: 18px 0 6px; }
+  p { margin: 8px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 13.4px; }
+  th, td { border: 1px solid var(--line); padding: 8px 11px; text-align: left; vertical-align: top; }
+  th { background: #f2f5f8; font-weight: 600; color: #22303d; white-space: nowrap; }
+  tr:nth-child(even) td { background: #fbfcfd; }
+  code { background: #f2f5f8; padding: 1px 5px; border-radius: 3px; font-family: Consolas, monospace; font-size: 13px; }
+  pre { background: #0f1b27; color: #d6e6f5; padding: 16px 18px; border-radius: 4px; overflow: auto; font-size: 12.6px; line-height: 1.7; }
+  pre code { background: none; padding: 0; color: inherit; }
+  blockquote { margin: 12px 0; padding: 8px 16px; border-left: 3px solid var(--accent); background: var(--accent-soft); color: #274; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 5px 0; }
+  .meta-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 8px; }
+  .chip { font-size: 12px; padding: 3px 10px; border: 1px solid var(--line); border-radius: 99px; color: var(--dim); background: #fafcfd; }
+  .foot { margin-top: 40px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 12px; color: var(--dim); display: flex; justify-content: space-between; }
+  @media print {
+    body { background: #fff; font-size: 11.5pt; }
+    .toc { display: none; }
+    .wrap { display: block; max-width: none; padding: 0; }
+    .doc { border: none; box-shadow: none; padding: 0; }
+    h2 { page-break-after: avoid; }
+    table, pre { page-break-inside: avoid; }
+  }
+  @media (max-width: 960px) {
+    .wrap { grid-template-columns: 1fr; padding: 20px 12px 40px; }
+    .toc { position: static; }
+    .doc { padding: 26px 18px 40px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <aside class="toc">
+    <h3>目录 CONTENTS</h3>
+    <ul><li class="lv2"><a href="#sec-1">1. 项目概述</a></li>
+<li class="lv3"><a href="#sec-2">1.1 背景</a></li>
+<li class="lv3"><a href="#sec-3">1.2 建设目标</a></li>
+<li class="lv3"><a href="#sec-4">1.3 范围边界</a></li>
+<li class="lv2"><a href="#sec-5">2. 用户与场景</a></li>
+<li class="lv2"><a href="#sec-6">3. 信息架构与布局</a></li>
+<li class="lv3"><a href="#sec-7">3.1 栅格</a></li>
+<li class="lv3"><a href="#sec-8">3.2 视觉基调</a></li>
+<li class="lv2"><a href="#sec-9">4. 功能需求</a></li>
+<li class="lv3"><a href="#sec-10">FR-01 三维孪生场景加载与呈现（P0）</a></li>
+<li class="lv3"><a href="#sec-11">FR-02 视角控制与预设（P0）</a></li>
+<li class="lv3"><a href="#sec-12">FR-03 分区热区标注与联动（P0）</a></li>
+<li class="lv3"><a href="#sec-13">FR-04 环境监测面板（P0）</a></li>
+<li class="lv3"><a href="#sec-14">FR-05 装备运行与远程启停（P1）</a></li>
+<li class="lv3"><a href="#sec-15">FR-06 实时告警中心（P0）</a></li>
+<li class="lv3"><a href="#sec-16">FR-07 作物生长态势（P1）</a></li>
+<li class="lv3"><a href="#sec-17">FR-08 资源消耗（P1）</a></li>
+<li class="lv3"><a href="#sec-18">FR-09 趋势与适宜度图表（P1）</a></li>
+<li class="lv3"><a href="#sec-19">FR-10 系统状态（P2）</a></li>
+<li class="lv3"><a href="#sec-20">FR-11 全屏与自适应（P0）</a></li>
+<li class="lv3"><a href="#sec-21">FR-12 数据源可替换（P2）</a></li>
+<li class="lv2"><a href="#sec-22">5. 非功能需求</a></li>
+<li class="lv2"><a href="#sec-23">6. 数据字典</a></li>
+<li class="lv3"><a href="#sec-24">6.1 环境指标</a></li>
+<li class="lv3"><a href="#sec-25">6.2 分区档案</a></li>
+<li class="lv3"><a href="#sec-26">6.3 设备</a></li>
+<li class="lv3"><a href="#sec-27">6.4 告警分级</a></li>
+<li class="lv2"><a href="#sec-28">7. 技术架构</a></li>
+<li class="lv3"><a href="#sec-29">7.1 分层</a></li>
+<li class="lv3"><a href="#sec-30">7.2 数据流</a></li>
+<li class="lv3"><a href="#sec-31">7.3 资产管线</a></li>
+<li class="lv3"><a href="#sec-32">7.4 目录结构</a></li>
+<li class="lv2"><a href="#sec-33">8. 部署与运行</a></li>
+<li class="lv3"><a href="#sec-34">8.1 环境要求</a></li>
+<li class="lv3"><a href="#sec-35">8.2 启动</a></li>
+<li class="lv3"><a href="#sec-36">8.3 常见问题</a></li>
+<li class="lv2"><a href="#sec-37">9. 验收清单</a></li>
+<li class="lv2"><a href="#sec-38">10. 风险与后续扩展</a></li></ul>
+  </aside>
+  <main class="doc">
+    <div class="meta-chips">
+      <span class="chip">版本 v1.0</span>
+      <span class="chip">Three.js r180</span>
+      <span class="chip">设计基准 1920×1080</span>
+      <span class="chip">GLB 27.5 MB</span>
+      <span class="chip">2026-11-18</span>
+    </div>
+    <h1>智慧大棚数字孪生大屏 · 需求分析与设计说明</h1>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>项目名称</td>
+<td>智慧大棚数字孪生平台（大屏端）</td>
+</tr>
+<tr>
+<td>文档版本</td>
+<td>v1.0</td>
+</tr>
+<tr>
+<td>编制日期</td>
+<td>2026-11-18</td>
+</tr>
+<tr>
+<td>三维资产</td>
+<td><code>model/greenhouse_optimized.glb</code>（由 <code>Greenhouse.fbx</code> 转换，27.5 MB）</td>
+</tr>
+<tr>
+<td>技术栈</td>
+<td>Three.js r180 + ECharts 5.5 + 原生 ES Module</td>
+</tr>
+<tr>
+<td>运行形态</td>
+<td>本地静态服务 + Chrome/Edge 全屏（kiosk）</td>
+</tr>
+<tr>
+<td>设计基准</td>
+<td>1920 × 1080，整屏等比缩放适配 2K / 4K</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="sec-1">1. 项目概述</h2>
+<h3 id="sec-2">1.1 背景</h3>
+<p>大棚环境调控目前依赖分散的传感器读数和人工经验，缺乏一张能同时表达&quot;空间位置 + 实时状态 + 装备动作&quot;的总览界面。园区已有的温室 FBX 模型（16 m × 32.16 m 主体、高 6.8 m，含 4 个种植分区与 32 棵园区装饰树）为大屏提供了真实空间基底，但模型本身只是&quot;静态外壳&quot;，不能回答&quot;哪个区现在多少度、哪台设备在跑、哪里在报警&quot;。</p>
+<p>本项目要做的，是把模型变成<strong>可读的运行态孪生体</strong>：以三维场景为空间索引，把环境、装备、作物、资源、告警五类数据挂到对应的位置和分区上，形成一屏可判读的态势界面。</p>
+<h3 id="sec-3">1.2 建设目标</h3>
+<ol>
+<li><strong>一屏总览</strong>：值班人员在 3 秒内看清&quot;棚内环境是否正常、设备是否按策略运行、是否有待处理告警&quot;。</li>
+<li><strong>空间可读</strong>：温度、湿度、CO₂ 等关键指标与棚内四个分区一一对应，点击模型即可联动该区数据。</li>
+<li><strong>态势可信</strong>：数据具备连续性与物理合理性（日夜节律、执行器影响、土壤水分收支），而非随机跳变的假数字。</li>
+<li><strong>开箱可演示</strong>：断网、无后端、无账号条件下，双击一次即可全屏呈现，适合汇报、参观与教学演示。</li>
+<li><strong>留有接口</strong>：数据层与 UI 层解耦，后续替换为 MQTT/WebSocket 真实数据时不需要改界面代码。</li>
+</ol>
+<h3 id="sec-4">1.3 范围边界</h3>
+<table>
+<thead>
+<tr>
+<th>纳入本期</th>
+<th>不纳入本期</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>三维孪生场景展示、视角控制、分区联动</td>
+<td>真实传感器硬件接入与网关部署</td>
+</tr>
+<tr>
+<td>环境/装备/作物/资源/告警五类面板</td>
+<td>历史数据仓库与报表导出</td>
+</tr>
+<tr>
+<td>24 小时趋势、分区适宜度图表</td>
+<td>用户权限、多角色、审批流</td>
+</tr>
+<tr>
+<td>内置物理合理的模拟数据源</td>
+<td>视频监控流接入、AI 病虫害识别</td>
+</tr>
+<tr>
+<td>一键启动、全屏适配</td>
+<td>移动端/小程序适配</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="sec-5">2. 用户与场景</h2>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>关注点</th>
+<th>典型动作</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>值班员（主）</td>
+<td>当前是否异常、设备是否在跑</td>
+<td>扫视告警栏、点选分区核对数值、必要时远程启停</td>
+</tr>
+<tr>
+<td>园区管理者</td>
+<td>当日资源消耗、作物长势</td>
+<td>查看资源卡与作物卡、对比分区适宜度</td>
+</tr>
+<tr>
+<td>参观/评审人员</td>
+<td>整体观感、技术含量</td>
+<td>观看自动巡航、切换视角、观察实时数据跳动</td>
+</tr>
+<tr>
+<td>运维人员</td>
+<td>数据链路是否健康</td>
+<td>查看系统状态卡（延迟、完整率、运行时长）</td>
+</tr>
+</tbody></table>
+<p><strong>典型场景</strong>：指挥中心 55 寸以上大屏常驻显示，无人交互时自动巡航；有人讲解时通过&quot;全景/大棚/棚内/俯视&quot;四个预设切换视角，点击棚体或分区标签联动左侧面板。</p>
+<hr>
+<h2 id="sec-6">3. 信息架构与布局</h2>
+<h3 id="sec-7">3.1 栅格</h3>
+<pre><code>┌──────────────────────────────────────────────────────────────┐
+│ 顶栏 78px  品牌 / 4 项 KPI / 天气·时钟·全屏                    │
+├────────────┬──────────────────────────────┬──────────────────┤
+│ 左列 392   │ 中列（自适应，约 1076）        │ 右列 392         │
+│ 环境监测    │ 三维孪生视口                  │ 实时告警          │
+│ 装备运行    │ · 分区标签 / 视角按钮          │ 作物生长          │
+│ 系统状态    │ · 温度色阶图例 / 场景统计      │ 资源消耗          │
+├────────────┴──────────────────────────────┴──────────────────┤
+│ 底部 200px  24 小时环境趋势（1.55fr） | 分区适宜度雷达（1fr）   │
+└──────────────────────────────────────────────────────────────┘
+</code></pre>
+<ul>
+<li>整屏按 1920×1080 绝对布局，<code>transform: scale(min(vw/1920, vh/1080))</code> 等比缩放并居中。</li>
+<li>左右列固定 392px，中列吃掉剩余宽度；所有卡片等高拉伸、内部滚动，保证 1080P 下无裁切。</li>
+</ul>
+<h3 id="sec-8">3.2 视觉基调</h3>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>色值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>背景</td>
+<td><code>#02060d</code> → <code>#0a1826</code></td>
+<td>深空蓝黑，降低大屏环境光干扰</td>
+</tr>
+<tr>
+<td>主色（数据/边框）</td>
+<td><code>#3ee7ff</code></td>
+<td>冷青，用于常规数据与描边</td>
+</tr>
+<tr>
+<td>正常/运行</td>
+<td><code>#49f0a6</code></td>
+<td>设备运行、作物进度</td>
+</tr>
+<tr>
+<td>预警</td>
+<td><code>#ffbe4d</code></td>
+<td>湿度偏低、CO₂ 偏高</td>
+</tr>
+<tr>
+<td>严重</td>
+<td><code>#ff5f6d</code></td>
+<td>高温、缺水</td>
+</tr>
+<tr>
+<td>辅助</td>
+<td><code>#a98bff</code></td>
+<td>资源类指标</td>
+</tr>
+</tbody></table>
+<p>字号层级：主标题 27 / 卡片标题 15 / 数值 21–26（Bahnschrift）/ 标签 11 / 辅助 9.5–10。</p>
+<p>动效原则：数值变化用 0.6s 过渡，卡片不整体闪烁；告警条目滑入 0.35s；三维场景只做脉冲环与粒子缓慢漂移，避免大屏长时间观看的视觉疲劳。</p>
+<hr>
+<h2 id="sec-9">4. 功能需求</h2>
+<p>优先级：P0 = 演示必需，P1 = 完整度必需，P2 = 增强。</p>
+<h3 id="sec-10">FR-01 三维孪生场景加载与呈现（P0）</h3>
+<ul>
+<li>加载 <code>greenhouse_optimized.glb</code>，加载期间显示进度条与百分比，完成后淡出遮罩。</li>
+<li>模型自动做包围盒归一：底部贴合 <code>y=0</code>、水平居中，避免手工调坐标。</li>
+<li>材质处理：玻璃统一替换为低不透明度物理材质（opacity 0.20、双面、不写深度）以透出内部苗床；植被保留 alpha 裁剪；贴图开启各向异性过滤。</li>
+<li>光照：半球光 + 主平行光（随真实时刻移动）+ 冷色轮廓光；夜间自动点亮棚内暖光，背景与雾色同步压暗。</li>
+<li>场景基座：同心网格环、36 格辐射线、加法混合光晕，形成&quot;数字孪生底盘&quot;。</li>
+<li><strong>验收</strong>：加载完成 &lt; 15 s（本地服务），场景可见且无穿模、无材质黑块。</li>
+</ul>
+<h3 id="sec-11">FR-02 视角控制与预设（P0）</h3>
+<ul>
+<li>四个预设：全景、大棚、棚内、俯视；切换时相机位置与目标点做 1s 缓动插值，不硬切。</li>
+<li>轨道控制：左键旋转、滚轮缩放（7–130 m）、限制俯仰角避免钻地。</li>
+<li>自动巡航开关：默认开启，0.45 倍速环绕；手动拖拽后仍保持巡航（可关闭）。</li>
+<li><strong>验收</strong>:四个预设均可到达且构图完整；巡航无明显抖动。</li>
+</ul>
+<h3 id="sec-12">FR-03 分区热区标注与联动（P0）</h3>
+<ul>
+<li>四个分区（A1 番茄 / A2 黄瓜 / A3 草莓 / A4 生菜）在三维空间对应一条垂直光柱 + 地面温度色环 + DOM 投影标签。</li>
+<li>标签内容：分区号、实时温度、湿度、CO₂，随相机投影实时跟随；背向相机时自动隐藏。</li>
+<li>点击标签或点击棚体（射线拾取后按 Z 轴就近归区）→ 左侧环境面板、作物卡、雷达高亮同步切换。</li>
+<li>温度色环按 14→33℃ 做蓝→青→绿→黄→红色阶映射，图例常驻右上。</li>
+<li><strong>验收</strong>：点击任意分区，三处面板与标签高亮一致，响应 &lt; 100 ms。</li>
+</ul>
+<h3 id="sec-13">FR-04 环境监测面板（P0）</h3>
+<ul>
+<li>展示选中分区 8 项指标：空气温度、空气湿度、CO₂、光照、土壤温度、土壤含水率、基质 EC、基质 pH。</li>
+<li>每项含数值、单位、量程进度条与状态色（正常/预警/严重），阈值来自 <code>config.js</code> 的统一口径。</li>
+<li>刷新频率 1 Hz；数值保留位数按指标定义（温度 1 位、EC/pH 2 位、光照取整）。</li>
+<li><strong>验收</strong>：8 项指标齐全，越限时颜色与进度条同步变化。</li>
+</ul>
+<h3 id="sec-14">FR-05 装备运行与远程启停（P1）</h3>
+<ul>
+<li>9 台设备：循环风机 A/B、湿帘水泵、LED 补光灯、外遮阳幕、内保温幕、水肥滴灌、加温管道、CO₂ 发生器。</li>
+<li>每行显示图标、名称、运行状态、累计运行时长/额定功率；点击整行即切换启停，带状态灯与开关动效。</li>
+<li>启停真实影响模拟数据（湿帘降 1.6℃、升 6.5% 湿度；加热升 1.8℃；补光灯补 2600 lux 等），不是纯装饰。</li>
+<li><strong>验收</strong>：点击后开关状态、运行计数、环境读数在 3 s 内出现可感知变化。</li>
+</ul>
+<h3 id="sec-15">FR-06 实时告警中心（P0）</h3>
+<ul>
+<li>分级：严重（红）/ 预警（黄）/ 提示（青）；每条含分区、时刻、文案。</li>
+<li>规则引擎每 5 s 巡检 9 条阈值规则（高温、低温、高湿、低湿、CO₂ 偏高、土壤缺水/过湿、EC 偏高、pH 偏低），同区同规则 2 分钟内不重复推送。</li>
+<li>保留最近 12 条，面板显示前 6 条，顶部统计未处理数量。</li>
+<li><strong>验收</strong>：开关设备或调整环境后能触发对应告警，文案含分区与数值方向。</li>
+</ul>
+<h3 id="sec-16">FR-07 作物生长态势（P1）</h3>
+<ul>
+<li>按选中分区展示：作物名称、生育阶段、进度条、播种天数、有效积温（℃·d）、叶面积指数、预估产量（t/亩）、长势评分。</li>
+<li>数据来自作物档案（番茄 78 天/开花坐果期、黄瓜 64 天/结果盛期、草莓 96 天/果实膨大期、生菜 32 天/莲座期）。</li>
+<li><strong>验收</strong>：切换分区时四个字段同步；进度条与百分比一致。</li>
+</ul>
+<h3 id="sec-17">FR-08 资源消耗（P1）</h3>
+<ul>
+<li>今日用电（kWh）、灌溉用水（m³）、CO₂ 施放（kg），各含目标值与完成百分比进度条。</li>
+<li>用电按&quot;当前开启设备额定功率之和 × 时间&quot;累计，用水按滴灌 1.2 m³/h、CO₂ 按 0.45 kg/h 累计，保证与设备状态自洽。</li>
+<li><strong>验收</strong>：开启加温管道后用电增速明显上升。</li>
+</ul>
+<h3 id="sec-18">FR-09 趋势与适宜度图表（P1）</h3>
+<ul>
+<li>左图：24 小时空气温度（面积线，左轴℃）与空气湿度（虚线，右轴 %RH），5 分钟粒度、288 点，开屏即有完整曲线。</li>
+<li>右图：四分区在&quot;温度适宜/湿度适宜/光照满足/CO₂ 适宜/土壤水分&quot;五维上的雷达对比（0–100 归一）。</li>
+<li>图表每 5 s 更新，避免 1 Hz 重绘带来的 CPU 占用。</li>
+<li><strong>验收</strong>：曲线连续无断点；雷达四色可区分；缩放窗口后图表自适应。</li>
+</ul>
+<h3 id="sec-19">FR-10 系统状态（P2）</h3>
+<ul>
+<li>采样频率 1 Hz、网关延迟（12–18 ms 波动）、数据完整率 99.8%、连续运行时长（按启动时刻计算）。</li>
+<li><strong>验收</strong>：运行时长随时间递增，刷新页面不重置（按固定启动时刻扣除）。</li>
+</ul>
+<h3 id="sec-20">FR-11 全屏与自适应（P0）</h3>
+<ul>
+<li>顶栏全屏按钮调用 Fullscreen API；启动脚本默认以 Chrome kiosk 全屏打开。</li>
+<li>任意 16:9 分辨率等比缩放，不出现拉伸与滚动条；非 16:9 时按短边等比并留黑边。</li>
+<li><strong>验收</strong>：1920×1080、2560×1440、3840×2160 下布局无错位。</li>
+</ul>
+<h3 id="sec-21">FR-12 数据源可替换（P2）</h3>
+<ul>
+<li>数据层 <code>GreenhouseModel</code> 对外只暴露 <code>snapshot()</code> 与 <code>onChange()</code>；模拟源与真实源实现同一契约。</li>
+<li>真实接入时新增 <code>WebSocketSource</code>，把报文映射为同结构的 <code>zones/devices/alerts</code>，UI 与三维层零改动。</li>
+<li><strong>验收</strong>：<code>data.js</code> 中替换实现后，页面其余文件不需修改。</li>
+</ul>
+<hr>
+<h2 id="sec-22">5. 非功能需求</h2>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>指标</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>首屏</td>
+<td>本地服务下模型可见 &lt; 15 s</td>
+<td>27.5 MB GLB + 1024 贴图，避免 2048 贴图在 2 GB 显存上反复换页</td>
+</tr>
+<tr>
+<td>帧率</td>
+<td>GT730 2G / i7-10700 下 ≥ 30 FPS，目标 45 FPS</td>
+<td>关闭阴影贴图、像素比上限 1.75、粒子 220、无后期处理</td>
+</tr>
+<tr>
+<td>内存</td>
+<td>稳定运行 8 h 内存增长 &lt; 10%</td>
+<td>历史定长 288 点、告警定长 40 条、图表不累积实例</td>
+</tr>
+<tr>
+<td>稳定性</td>
+<td>7×24 常驻不崩溃、不弹窗</td>
+<td>无外部网络依赖，全部资源本地化</td>
+</tr>
+<tr>
+<td>兼容性</td>
+<td>Chrome / Edge 最新版（WebGL2）</td>
+<td>不支持 IE 与国产双核浏览器兼容模式</td>
+</tr>
+<tr>
+<td>可维护性</td>
+<td>配置与表现分离</td>
+<td>分区、指标、设备、阈值集中在 <code>js/config.js</code></td>
+</tr>
+<tr>
+<td>可移植性</td>
+<td>拷走 <code>D:\greenhouse</code> 即可运行</td>
+<td>依赖已 vendor 到 <code>web/vendor</code>，不需要 npm install</td>
+</tr>
+</tbody></table>
+<p><strong>已知约束</strong>：GT730 属入门独显，23 万三角面 + 大面积半透明植被叠加时，棚内视角帧率会下降；已通过禁用阴影、限制像素比、植被 alpha 裁剪缓解。若后续加入视频流或多场景，需升级显卡或改用云渲染。</p>
+<hr>
+<h2 id="sec-23">6. 数据字典</h2>
+<h3 id="sec-24">6.1 环境指标</h3>
+<table>
+<thead>
+<tr>
+<th>键</th>
+<th>名称</th>
+<th>单位</th>
+<th>量程</th>
+<th>正常区间</th>
+<th>预警/严重阈值</th>
+<th>精度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>airTemp</td>
+<td>空气温度</td>
+<td>℃</td>
+<td>12–36</td>
+<td>16–32</td>
+<td>&lt;16 或 &gt;32</td>
+<td>0.1</td>
+</tr>
+<tr>
+<td>airHum</td>
+<td>空气湿度</td>
+<td>%RH</td>
+<td>30–95</td>
+<td>55–85</td>
+<td>&lt;55 或 &gt;88（&gt;88 严重）</td>
+<td>0</td>
+</tr>
+<tr>
+<td>co2</td>
+<td>CO₂ 浓度</td>
+<td>ppm</td>
+<td>300–1500</td>
+<td>450–1200</td>
+<td>&gt;1200</td>
+<td>0</td>
+</tr>
+<tr>
+<td>light</td>
+<td>光照强度</td>
+<td>lux</td>
+<td>0–12000</td>
+<td>—</td>
+<td>夜间补光 &lt; 2600 提示</td>
+<td>0</td>
+</tr>
+<tr>
+<td>soilTemp</td>
+<td>土壤温度</td>
+<td>℃</td>
+<td>10–32</td>
+<td>14–28</td>
+<td>越界预警</td>
+<td>0.1</td>
+</tr>
+<tr>
+<td>soilHum</td>
+<td>土壤含水率</td>
+<td>%</td>
+<td>15–60</td>
+<td>22–45</td>
+<td>&lt;22 严重、&gt;45 预警</td>
+<td>0</td>
+</tr>
+<tr>
+<td>ec</td>
+<td>基质 EC</td>
+<td>mS/cm</td>
+<td>0.5–3.5</td>
+<td>1.0–3.0</td>
+<td>&gt;3.0 预警</td>
+<td>0.01</td>
+</tr>
+<tr>
+<td>ph</td>
+<td>基质 pH</td>
+<td>—</td>
+<td>4.5–8.0</td>
+<td>5.5–7.2</td>
+<td>&lt;5.5 预警</td>
+<td>0.01</td>
+</tr>
+</tbody></table>
+<h3 id="sec-25">6.2 分区档案</h3>
+<table>
+<thead>
+<tr>
+<th>分区</th>
+<th>作物</th>
+<th>面积定位（模型 Z 轴）</th>
+<th>生育阶段</th>
+<th>播种天数</th>
+<th>有效积温</th>
+<th>叶面积指数</th>
+<th>预估产量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A1</td>
+<td>番茄</td>
+<td>-12.0 m</td>
+<td>开花坐果期</td>
+<td>78 d</td>
+<td>1842 ℃·d</td>
+<td>3.2</td>
+<td>4.8 t/亩</td>
+</tr>
+<tr>
+<td>A2</td>
+<td>黄瓜</td>
+<td>-4.0 m</td>
+<td>结果盛期</td>
+<td>64 d</td>
+<td>1620 ℃·d</td>
+<td>3.8</td>
+<td>5.6 t/亩</td>
+</tr>
+<tr>
+<td>A3</td>
+<td>草莓</td>
+<td>+4.0 m</td>
+<td>果实膨大期</td>
+<td>96 d</td>
+<td>1410 ℃·d</td>
+<td>2.4</td>
+<td>2.9 t/亩</td>
+</tr>
+<tr>
+<td>A4</td>
+<td>生菜</td>
+<td>+12.0 m</td>
+<td>莲座期</td>
+<td>32 d</td>
+<td>760 ℃·d</td>
+<td>2.1</td>
+<td>1.7 t/亩</td>
+</tr>
+</tbody></table>
+<h3 id="sec-26">6.3 设备</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>名称</th>
+<th>类型</th>
+<th>额定功率</th>
+<th>默认</th>
+<th>对环境的耦合</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>fanA / fanB</td>
+<td>循环风机 A/B</td>
+<td>fan</td>
+<td>0.75 kW</td>
+<td>开</td>
+<td>降温 0.35℃、降湿 2.0%</td>
+</tr>
+<tr>
+<td>pad</td>
+<td>湿帘水泵</td>
+<td>pump</td>
+<td>1.10 kW</td>
+<td>开</td>
+<td>降温 1.6℃、升湿 6.5%</td>
+</tr>
+<tr>
+<td>light</td>
+<td>LED 补光灯</td>
+<td>lamp</td>
+<td>2.40 kW</td>
+<td>关</td>
+<td>补光至 2600 lux</td>
+</tr>
+<tr>
+<td>shade</td>
+<td>外遮阳幕</td>
+<td>shade</td>
+<td>0.55 kW</td>
+<td>关</td>
+<td>光照 ×0.55、降温 0.7℃</td>
+</tr>
+<tr>
+<td>screen</td>
+<td>内保温幕</td>
+<td>screen</td>
+<td>0.45 kW</td>
+<td>关</td>
+<td>升湿 1.5%</td>
+</tr>
+<tr>
+<td>irrig</td>
+<td>水肥滴灌</td>
+<td>drop</td>
+<td>1.20 kW</td>
+<td>开</td>
+<td>土壤含水 +0.16%/s、稀释 EC</td>
+</tr>
+<tr>
+<td>heater</td>
+<td>加温管道</td>
+<td>heat</td>
+<td>3.00 kW</td>
+<td>关</td>
+<td>升温 1.8℃</td>
+</tr>
+<tr>
+<td>co2</td>
+<td>CO₂ 发生器</td>
+<td>co2</td>
+<td>0.35 kW</td>
+<td>开</td>
+<td>CO₂ +110 ppm</td>
+</tr>
+</tbody></table>
+<h3 id="sec-27">6.4 告警分级</h3>
+<table>
+<thead>
+<tr>
+<th>级别</th>
+<th>色值</th>
+<th>判据</th>
+<th>处置建议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>严重 critical</td>
+<td><code>#ff5f6d</code></td>
+<td>温度 &gt;32℃ / 湿度 &gt;88% / 土壤含水 &lt;22%</td>
+<td>立即干预，10 min 内响应</td>
+</tr>
+<tr>
+<td>预警 warning</td>
+<td><code>#ffbe4d</code></td>
+<td>温度 &lt;16℃ / 湿度 &lt;55% / CO₂ &gt;1200 ppm / EC &gt;3.0 / pH &lt;5.5 / 土壤 &gt;45%</td>
+<td>当班处理，2 h 内闭环</td>
+</tr>
+<tr>
+<td>提示 info</td>
+<td><code>#3ee7ff</code></td>
+<td>设备启停、策略自动执行</td>
+<td>记录留痕</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="sec-28">7. 技术架构</h2>
+<h3 id="sec-29">7.1 分层</h3>
+<pre><code>┌─────────────────────────────────────────────────────┐
+│ 表现层  web/index.html + css/screen.css              │
+│         ├─ 三维视口  js/scene.js（Three.js）          │
+│         └─ 数据面板  js/ui.js（DOM + ECharts）        │
+├─────────────────────────────────────────────────────┤
+│ 数据层  js/data.js（GreenhouseModel 模拟引擎）         │
+│         契约：snapshot() / onChange() / toggleDevice() │
+├─────────────────────────────────────────────────────┤
+│ 配置层  js/config.js（分区·指标·设备·阈值·色板）        │
+├─────────────────────────────────────────────────────┤
+│ 资产层  model/*.glb  web/vendor/*（three、echarts）   │
+├─────────────────────────────────────────────────────┤
+│ 运行层  server.mjs 或 py -m http.server + Chrome kiosk│
+└─────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="sec-30">7.2 数据流</h3>
+<pre><code>模拟引擎 tick(1s)
+  → 目标值(日变化+执行器) → 一阶惯性跟随 → 分区 state
+  → snapshot() 广播
+      ├─ scene.updateData()：标签数值、温度色环、设备发光、昼夜光照
+      └─ ui.update()：KPI、指标卡、作物、资源、告警；图表 5s 节流
+</code></pre>
+<h3 id="sec-31">7.3 资产管线</h3>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>工具</th>
+<th>处理</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>Blender 4.5 无头导入</td>
+<td>FBX 原始 135 网格 / 232,684 三角面</td>
+<td>场景树还原</td>
+</tr>
+<tr>
+<td>2</td>
+<td>材质重建</td>
+<td>原始 <code>Plants</code> 材质缺失贴图（苗床呈灰白），补绑 Diffuse / Opacity / Normal / Roughness</td>
+<td>苗床还原真实植物质感</td>
+</tr>
+<tr>
+<td>3</td>
+<td>贴图降采样</td>
+<td>11 张 2048 → 1024，重新打包</td>
+<td>显存占用约降至 1/4</td>
+</tr>
+<tr>
+<td>4</td>
+<td>材质修正</td>
+<td>HASHED → CLIP（alpha 0.5），导出后强制植被 alphaMode=MASK</td>
+<td>植被镂空正确，避免半透明排序错乱</td>
+</tr>
+<tr>
+<td>5</td>
+<td>glTF 导出</td>
+<td>内嵌贴图、Y-up、不压缩几何</td>
+<td><code>greenhouse_optimized.glb</code> 27.5 MB</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>说明：FBX 直接进浏览器需要额外解析贴图相对路径，且 43 MB 原始文件解析更慢；转 GLB 后单文件加载、路径零依赖，更适合大屏离线运行。原始 FBX 保留在 <code>model/source</code> 作为回滚备份。</p>
+</blockquote>
+<h3 id="sec-32">7.4 目录结构</h3>
+<pre><code>D:\greenhouse\
+├─ model\
+│  ├─ greenhouse_optimized.glb     # 大屏加载的模型（27.5 MB）
+│  ├─ source\Greenhouse.fbx        # 原始资产（43 MB，备份）
+│  └─ textures\                    # 原始 2048 贴图
+├─ web\
+│  ├─ index.html
+│  ├─ css\screen.css
+│  ├─ js\{config,data,scene,ui,main}.js
+│  └─ vendor\{three,echarts}\      # 已本地化，断网可用
+├─ docs\
+│  ├─ 需求分析.md
+│  └─ 需求分析.html
+├─ tools\build_glb.py              # 资产重建脚本
+├─ server.mjs                      # 零依赖静态服务
+└─ 启动大屏.bat
+</code></pre>
+<hr>
+<h2 id="sec-33">8. 部署与运行</h2>
+<h3 id="sec-34">8.1 环境要求</h3>
+<ul>
+<li>Windows 10/11，Chrome 或 Edge（WebGL2）。</li>
+<li>Python 3.7+ 或 Node 18+（仅用于起静态服务，二选一）。</li>
+</ul>
+<h3 id="sec-35">8.2 启动</h3>
+<ol>
+<li>双击 <code>启动大屏.bat</code>：自动选择 <code>py -m http.server</code> 或 <code>node server.mjs</code> 起服务（端口 8090），随后以 kiosk 全屏打开 Chrome。</li>
+<li>退出全屏：<code>Alt + F4</code> 或 <code>F11</code>；关闭标题为 <code>greenhouse-server</code> 的最小化窗口即停止服务。</li>
+<li>手动方式：<code>py -3 -m http.server 8090 --directory D:\greenhouse</code>，浏览器访问 <code>http://localhost:8090/web/index.html</code>。</li>
+<li>换端口：修改 bat 中 <code>PORT</code>，或 <code>node server.mjs 8091</code>。</li>
+</ol>
+<h3 id="sec-36">8.3 常见问题</h3>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>原因</th>
+<th>处理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>白屏、控制台报 module 404</td>
+<td>用 <code>file://</code> 直接打开</td>
+<td>必须走 http 服务，ES Module 不允许 file 协议</td>
+</tr>
+<tr>
+<td>模型不显示、加载停在 0%</td>
+<td>端口被占用或服务未起</td>
+<td>换端口，确认 <code>http://localhost:8090/web/index.html</code> 可访问</td>
+</tr>
+<tr>
+<td>场景很卡</td>
+<td>显卡不足或像素比过高</td>
+<td>关闭其他 GPU 程序；如需再降负载，可将 <code>scene.js</code> 像素比上限调至 1.2</td>
+</tr>
+<tr>
+<td>文字模糊</td>
+<td>缩放后位图拉伸</td>
+<td>使用 1920×1080 或 3840×2160 等 16:9 整数倍分辨率</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="sec-37">9. 验收清单</h2>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>验收项</th>
+<th>通过标准</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AC-01</td>
+<td>首屏</td>
+<td>打开后 15 s 内模型完整出现，遮罩淡出，无控制台报错</td>
+</tr>
+<tr>
+<td>AC-02</td>
+<td>三维质量</td>
+<td>玻璃通透可看到苗床，植被无黑边或白块，地面无 Z-fighting</td>
+</tr>
+<tr>
+<td>AC-03</td>
+<td>联动</td>
+<td>点击四个分区标签/棚体，左侧指标、作物卡、雷达同步切换</td>
+</tr>
+<tr>
+<td>AC-04</td>
+<td>数据合理性</td>
+<td>温度呈日夜曲线（14 时最高、凌晨最低），湿度反向，CO₂ 夜间高</td>
+</tr>
+<tr>
+<td>AC-05</td>
+<td>设备耦合</td>
+<td>开湿帘后温度下降、湿度上升；开加温后温度上升、用电加速</td>
+</tr>
+<tr>
+<td>AC-06</td>
+<td>告警</td>
+<td>触发阈值后 5 s 内出现对应告警，2 分钟内不重复刷屏</td>
+</tr>
+<tr>
+<td>AC-07</td>
+<td>图表</td>
+<td>24 h 曲线 288 点连续；雷达四色可辨；5 s 更新</td>
+</tr>
+<tr>
+<td>AC-08</td>
+<td>适配</td>
+<td>1920/2560/3840 分辨率下无错位、无滚动条</td>
+</tr>
+<tr>
+<td>AC-09</td>
+<td>性能</td>
+<td>GT730 环境全景 ≥30 FPS，连续 8 h 无内存泄漏</td>
+</tr>
+<tr>
+<td>AC-10</td>
+<td>离线</td>
+<td>断网后刷新仍可完整运行（依赖全部本地化）</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="sec-38">10. 风险与后续扩展</h2>
+<table>
+<thead>
+<tr>
+<th>风险</th>
+<th>影响</th>
+<th>应对</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GT730 显存与算力有限</td>
+<td>棚内视角帧率下降</td>
+<td>已降贴图/关阴影；后续可换 GLB 的 LOD 或升级显卡</td>
+</tr>
+<tr>
+<td>模拟数据与真实偏差</td>
+<td>演示可信度</td>
+<td>数据层已抽象，接入真实网关后以实测为准</td>
+</tr>
+<tr>
+<td>大屏长期无人值守</td>
+<td>服务中断无人发现</td>
+<td>建议加开机自启与进程守护（任务计划程序）</td>
+</tr>
+<tr>
+<td>模型版权</td>
+<td>商用受限</td>
+<td>现有模型为免费资源，正式项目需替换为实测模型</td>
+</tr>
+</tbody></table>
+<p><strong>后续扩展优先级</strong>：</p>
+<ol>
+<li><strong>真实数据接入</strong>（P0）：ESP32/网关 → MQTT → WebSocket 桥 → <code>WebSocketSource</code>。</li>
+<li><strong>视频融合</strong>（P1）：在三维场景中贴摄像头画面，形成&quot;虚实对照&quot;。</li>
+<li><strong>策略联动</strong>（P1）：告警一键触发设备组合（如高温 → 开湿帘 + 开风机）。</li>
+<li><strong>多棚切换</strong>（P2）：园区级视角下点击不同温室进入单棚。</li>
+<li><strong>移动端只读版</strong>（P2）：值班人员手机查看关键 KPI 与告警。</li>
+</ol>
+
+    <div class="foot">
+      <span>智慧大棚数字孪生平台 · 需求分析与设计说明</span>
+      <span>生成于 2026/11/18 14:22:29</span>
+    </div>
+  </main>
+</div>
+</body>
+</html>

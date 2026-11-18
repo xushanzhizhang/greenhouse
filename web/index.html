@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>智慧大棚数字孪生平台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23040a16'/%3E%3Cpath d='M16 4l10 6v12l-10 6-10-6V10z' stroke='%233ee7ff' fill='none' stroke-width='1.6'/%3E%3Cpath d='M16 26V14M16 18l-4-3M16 21l4-3' stroke='%2349f0a6' stroke-width='1.8'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./css/screen.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/three.module.js",
+        "three/addons/": "./vendor/three/addons/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <!-- ======================= 顶栏 ======================= -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">
+          <svg viewBox="0 0 48 48" fill="none">
+            <path d="M24 6 L40 16 V34 L24 44 L8 34 V16 Z" stroke="#3ee7ff" stroke-width="1.6" opacity=".55" />
+            <path d="M24 12 L34 18 V31 L24 37 L14 31 V18 Z" fill="rgba(62,231,255,.08)" stroke="#3ee7ff" stroke-width="1.2" />
+            <path d="M24 37 V20 M24 26 L18 22 M24 29 L30 25" stroke="#49f0a6" stroke-width="1.8" />
+            <circle cx="24" cy="19" r="2.2" fill="#49f0a6" />
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>智慧大棚数字孪生平台</h1>
+          <p>SMART GREENHOUSE DIGITAL TWIN · 环境 · 装备 · 作物 实时态势</p>
+        </div>
+      </div>
+
+      <div class="top-kpi">
+        <div class="tk">
+          <span class="tk-label">棚内均温</span>
+          <span class="tk-value"><b id="kpi-temp">--</b><i>℃</i></span>
+        </div>
+        <div class="tk">
+          <span class="tk-label">平均湿度</span>
+          <span class="tk-value"><b id="kpi-hum">--</b><i>%</i></span>
+        </div>
+        <div class="tk">
+          <span class="tk-label">CO₂ 浓度</span>
+          <span class="tk-value"><b id="kpi-co2">--</b><i>ppm</i></span>
+        </div>
+        <div class="tk">
+          <span class="tk-label">在线传感器</span>
+          <span class="tk-value"><b id="kpi-sensor">24</b><i>/24</i></span>
+        </div>
+      </div>
+
+      <div class="top-right">
+        <div class="weather">
+          <span class="w-icon">
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.2" stroke="#ffbe4d" stroke-width="1.6"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17L4.9 19.1" stroke="#ffbe4d" stroke-width="1.6"/></svg>
+          </span>
+          <span class="w-txt">晴 18℃ · 东南风 2 级</span>
+        </div>
+        <div class="clock">
+          <span class="c-time" id="clock-time">--:--:--</span>
+          <span class="c-date" id="clock-date">----年--月--日</span>
+        </div>
+        <button class="icon-btn" id="btn-full" title="全屏">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="#7fd8f5" stroke-width="1.8"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ======================= 主体 ======================= -->
+    <main class="layout">
+      <!-- 左列 -->
+      <aside class="col">
+        <section class="card" id="card-env">
+          <div class="card-hd">
+            <span class="hd-bar"></span>
+            <h2>环境监测</h2>
+            <span class="hd-en">ENVIRONMENT</span>
+            <span class="hd-tail" id="env-zone">A1 番茄区</span>
+          </div>
+          <div class="metric-grid" id="metric-grid"></div>
+        </section>
+
+        <section class="card" id="card-device">
+          <div class="card-hd">
+            <span class="hd-bar"></span>
+            <h2>装备运行</h2>
+            <span class="hd-en">ACTUATORS</span>
+            <span class="hd-tail"><b id="dev-on">0</b>/<b id="dev-total">0</b> 运行</span>
+          </div>
+          <div class="device-list" id="device-list"></div>
+        </section>
+
+        <section class="card" id="card-sys">
+          <div class="card-hd">
+            <span class="hd-bar"></span>
+            <h2>系统状态</h2>
+            <span class="hd-en">SYSTEM</span>
+          </div>
+          <div class="sys-grid" id="sys-grid">
+            <div class="sys-item"><span>采样频率</span><b>1 Hz</b></div>
+            <div class="sys-item"><span>网关延迟</span><b id="sys-delay">-- ms</b></div>
+            <div class="sys-item"><span>数据完整率</span><b>99.8 %</b></div>
+            <div class="sys-item"><span>连续运行</span><b id="sys-uptime">--</b></div>
+          </div>
+        </section>
+      </aside>
+
+      <!-- 中列 -->
+      <section class="center">
+        <div id="viewport" class="viewport"></div>
+
+        <div class="hud hud-top">
+          <div class="zone-tabs" id="zone-tabs"></div>
+          <div class="cam-btns" id="cam-btns">
+            <button class="cam-btn active" data-cam="overview">全景</button>
+            <button class="cam-btn" data-cam="greenhouse">大棚</button>
+            <button class="cam-btn" data-cam="inside">棚内</button>
+            <button class="cam-btn" data-cam="top">俯视</button>
+            <button class="cam-btn toggle" id="btn-rotate" title="自动巡航">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4" stroke="currentColor" stroke-width="1.6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="hud hud-legend">
+          <span class="lg-title">棚内温度</span>
+          <div class="lg-bar"></div>
+          <div class="lg-scale"><span>14℃</span><span>20℃</span><span>26℃</span><span>32℃</span></div>
+        </div>
+
+        <div class="hud hud-bottom">
+          <div class="scene-stats">
+            <div><span>模型三角面</span><b id="st-tris">232.7k</b></div>
+            <div><span>渲染帧率</span><b id="st-fps">--</b></div>
+            <div><span>当前视角</span><b id="st-cam">全景</b></div>
+          </div>
+          <div class="scene-hint">拖拽旋转 · 滚轮缩放 · 点击棚体联动分区</div>
+        </div>
+      </section>
+
+      <!-- 右列 -->
+      <aside class="col">
+        <section class="card" id="card-alert">
+          <div class="card-hd">
+            <span class="hd-bar warn"></span>
+            <h2>实时告警</h2>
+            <span class="hd-en">ALERTS</span>
+            <span class="hd-tail"><b id="alert-count">0</b> 条未处理</span>
+          </div>
+          <ul class="alert-list" id="alert-list"></ul>
+        </section>
+
+        <section class="card" id="card-crop">
+          <div class="card-hd">
+            <span class="hd-bar green"></span>
+            <h2>作物生长</h2>
+            <span class="hd-en">CROP</span>
+            <span class="hd-tail" id="crop-name">番茄</span>
+          </div>
+          <div class="crop-body">
+            <div class="crop-stage">
+              <div class="cs-top"><span>生育阶段</span><b id="crop-stage">开花坐果期</b></div>
+              <div class="cs-bar"><i id="crop-bar" style="width:60%"></i></div>
+              <div class="cs-foot"><span id="crop-day">播种第 78 天</span><span id="crop-pct">62%</span></div>
+            </div>
+            <div class="crop-grid">
+              <div><span>有效积温</span><b id="crop-gdd">1842</b><i>℃·d</i></div>
+              <div><span>叶面积指数</span><b id="crop-lai">3.2</b></div>
+              <div><span>预估产量</span><b id="crop-yield">4.8</b><i>t/亩</i></div>
+              <div><span>长势评分</span><b id="crop-score">92</b><i>分</i></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" id="card-res">
+          <div class="card-hd">
+            <span class="hd-bar violet"></span>
+            <h2>资源消耗</h2>
+            <span class="hd-en">RESOURCE</span>
+            <span class="hd-tail">今日</span>
+          </div>
+          <div class="res-body">
+            <div class="res-row" data-k="energy">
+              <div class="res-top"><span>用电量</span><b><i id="res-energy">0.0</i> kWh</b></div>
+              <div class="res-bar"><i id="bar-energy"></i></div>
+              <div class="res-foot"><span>目标 68 kWh</span><span id="res-energy-pct">--</span></div>
+            </div>
+            <div class="res-row" data-k="water">
+              <div class="res-top"><span>灌溉用水</span><b><i id="res-water">0.00</i> m³</b></div>
+              <div class="res-bar"><i id="bar-water"></i></div>
+              <div class="res-foot"><span>目标 3.2 m³</span><span id="res-water-pct">--</span></div>
+            </div>
+            <div class="res-row" data-k="co2">
+              <div class="res-top"><span>CO₂ 施放</span><b><i id="res-co2">0.0</i> kg</b></div>
+              <div class="res-bar"><i id="bar-co2"></i></div>
+              <div class="res-foot"><span>目标 9.5 kg</span><span id="res-co2-pct">--</span></div>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <!-- ======================= 底部图表 ======================= -->
+    <section class="bottom">
+      <div class="card chart-card">
+        <div class="card-hd">
+          <span class="hd-bar"></span>
+          <h2>24 小时环境趋势</h2>
+          <span class="hd-en">24H TREND</span>
+          <span class="hd-tail">5 分钟粒度 · 自动刷新</span>
+        </div>
+        <div class="chart" id="chart-trend"></div>
+      </div>
+      <div class="card chart-card">
+        <div class="card-hd">
+          <span class="hd-bar violet"></span>
+          <h2>分区环境适宜度</h2>
+          <span class="hd-en">ZONE SCORE</span>
+          <span class="hd-tail">理想值归一</span>
+        </div>
+        <div class="chart" id="chart-radar"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ======================= 加载遮罩 ======================= -->
+  <div class="loading" id="loading">
+    <div class="ld-inner">
+      <div class="ld-title">智慧大棚数字孪生平台</div>
+      <div class="ld-sub">正在加载三维孪生体 · <span id="ld-file">greenhouse_optimized.glb</span></div>
+      <div class="ld-bar"><i id="ld-fill"></i></div>
+      <div class="ld-pct" id="ld-pct">0%</div>
+    </div>
+  </div>
+
+  <script src="./vendor/echarts/echarts.min.js"></script>
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
